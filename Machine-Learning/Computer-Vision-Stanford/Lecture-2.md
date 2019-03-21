@@ -75,3 +75,36 @@
 	- Gold Standardk
 
 ![CrossValidation](res/Lecture2-3.png)
+
+### Linear Classifiers
+- Deep learning is king of like legos, you put diferent architectures together to build your model
+  - Linear classifiers is one of the basic building blocks
+- (X) input multiplied by parameters (W) and gives you the predictions
+- In parametric approach you sumarize all the information into the parameters
+  - makes models more efficient
+- Most of deep learning is finiding which function to use
+  - The simplest is to multiply them as a linear classifier
+
+![LinearClassifier](res/Lecture2-4.png)
+
+- In this example you can see how a linear classifier works
+  - The shape of the matric is because you need to have 3 outputs and you have 4 inputs (4 x 3)
+	1. Stretch the pixels of the image
+	2. multiply by thhe weights
+	3. Add the bias
+	4. Then you will get the score for that label
+- There is a row of wieghts in per each label
+- After trainning a linear classifier you can visualize how they learn by reshaping the weights into images again
+ 
+![Image Classification Templates](res/Lecture2-7.png "Linear Classifier templates")
+
+- Linear classifiers can only learn one template by category but other architectures can learn more
+- You can think on how linear classifiers work if you see it in space and draw the boundaries
+![Visualize linear classifiers](res/Lecture2-8.png)
+
+#### Matrix multiplication
+- Examples of matrix multiplication to deduct how to do it
+
+![Matrix multiplication](res/Lecture2-5.png)
+![Matrix multiplication](res/Lecture2-6.png)
+
