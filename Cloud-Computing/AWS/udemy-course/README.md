@@ -122,7 +122,8 @@ Amazon web service course for the exam of associate exam.
 
 ### Implied Router
 
-- What connects different subnets together
+- What connects different subnets and internet gateway
+- knowns where to send traffic to reach its destination
 - Central VPC routing
 - Connects different AZ's together and connects the VPC to the Internet Gateway
 - Each subnet will have a route table the routed uses to forward traffic within the VPC
@@ -156,3 +157,147 @@ Amazon web service course for the exam of associate exam.
   - If you need to change the the CIDR size you need to create a new VPC
 - If you need more IP addresses you can add secondary CIDR blocks
   - This is to expand the VPC IP address ranges
+- **Reserved IPs in each subnet**
+  - On each subnet the first 4 IP adresses and the last one are reserved
+    - Ex: on subnet 10.0.0.0/24
+      - 10.0.0.0, 10.0.0.1, 10.0.0.2, 10.0.0.3 and 10.0.0.255 are reserved
+- *Note* IPv4 is 32 bits
+
+### Internet gateway
+
+- Is how the VPC subnets and instances can communicate with the internet
+- Is a horizontall scaled, redudntant and highly available. You won't have problems with it because it is completely managed by AWS
+- Internet Gateways performs the NAT (Network address translation) between your private and public IPv4 address.
+  - If you have any service with a public IP the internet gateway will take care of it
+- Supports IPv4 & IPv6
+
+### Public subnets vs Private Subnets
+
+- RFC 1918 are private IP addresses
+  - This can be reused
+- Routable IP addresses are addresses which can be connected in the internet
+  - This ones can't be duplicated
+
+## VPC Demo 1 Overview lab
+
+- When you create a AWS account a VPC will be created automatically in each region
+- By default in automatically created VPC you get a subnet per each availability zone
+- You can;t have a subnet that covers more than 1 availability zone but you can have multiple subnets per availability zone
+- 0.0.0.0/0 is a wild destination, any IP address
+-  igw = internet gateway
+- You cannot delete the VPC local target block
+
+## VPC Demo 2 Overview lab
+
+- you must always detach the igw from the vpc before deleting it
+- You can add extra CIDR blocks for you subnets, but there are some blocked, check documentation to know which ones can you use
+- You cannot delete the main route table
+
+## VPC Types and Security Groups intro
+
+### VPC types
+
+- You can have 2 VPC types
+  - Default
+    - Created in each region when you create AWS account
+    - Has defaulte CIDR block, security group, N ACL, route table settings
+    - Default igw
+  - Custom (non-default)
+    - AWS account owner created
+    - You choose the CIDR block
+    - Has its own default security group, N ACL, and route tables
+    - Does not have a igw by default, you need to create it and attach it
+
+### Security groups
+
+![AWS server](./res/1.png)
+
+This image illustrates how the servers in AWS work. They are virtually divided into different servers (VMs) each of them havind their own set of memory, CPU, Network cards (NIC) and storage drive. Ther virtualization layer is what manages the division
+
+- VNIC (virtual nic card), in AWS called ENI (Elastic Network interface)
+- Security groups are firewalls, which controls traffic at the virtual server (EC2 instance) level
+  - Specifically at the ENI
+- There is an inbound and outbound direction
+- You can have up to 5 security groups at the same time per subnet
+- SGs are **stateful**, return traffic is allowed even if the there is no specific rule to allow it.
+  - If you do a HTTP request, the response to this request is going to be allowed even if there is no rule allowing the outbound of the response
+- Security groups can only have permit rules
+  - You can't have deny rules
+  - At the end of all the rules there is a deny, so everything that is not allowed is denied by default
+- SGs are associated with EC2 instances network interfaces
+- All rules are evaluated to see if the traffic is allowed
+- SGs are **directional** because inbound and outbound are diferent
+
+## DEMO 3 Creating a custom VPC
+
+- IPv6 has no private addresses which is why you can't decide which CIDR block you'll use
+- Tenancy means that you'll want all your instances to be on dedicated hardware. (not shared with others) no matter if when starting the EC2 instance you choose the shared one option.
+- All the resources are shown in the VPC dashboard and it is your task to manage it for each VPC per region
+- Public subnets are:
+  - Must be in a VPC with an igw configured and attached
+  - The route table has an entry that points to an igw
+  - You manually or automatically allocate elastic IPs to the instance
+- In order to known to which subnets to send the information you need to associate subnets to a route table
+  - You can't associate the same subnet to multiple route tables
+  - But you can have multiple route tables in the same subnet
+
+## DEMO 4 Security Groups
+
+- Rules settings:
+  - Type: is the type of traffic
+  - Protocol
+  - Port Range
+  - Source: from where does the traffic comes from
+  - Destination: Where is the traffic going to
+  - Descrption: your own description
+- You can add sources and destinations from SGs that are on the same VPC, but not on other
+- In a custom SG, the default rules for inbound is not to accept any request and in the outbound is to accept ALL
+- All changes to security groups are inmediatily effected
+
+## Security Groups Mastery
+
+- SGs is the EC2 instance firewall and then the NACL is the whole subnet security
+- When creating a EC2 instance, it must have a security group.
+  - You might assign an existing one or create a new one
+- Default security group can't be deleted
+- SGs are VPC resources, so if you have 2 EC2 instances in diferent subnets thay can both have the same SG
+- Changes to SGs take effect immediately
+
+### Default and non-default security groups
+
+- **Default SG**:
+  - inbound rules allows instances assigned in the same group can talk to each other
+  - All outbound traffic is allowed
+- **Custom SG**:
+  - No inbound rules -> all incoming traffic is denied
+  - All outbound traffic is allowed
+- You can use SGs names as source and destination of rules
+- Security groups are directional and can use allow rules only
+- SGs end with an implicit deny all
+
+## Network Access Control List (NACL)
+
+![NACL](res/2.png)
+
+- The NACL function is performed in the implied router
+- it functions at the subnet level
+  - It works between the router and the subnet
+- NACL is the first line of defense
+- NACLs are **stateless**, it requires rules for inbound and outbound. Not like the SGs
+- In NACLs can configure permits and denies
+- NACL is a set of rules, each has a number
+- It has a explicit deny at the end
+- It checks the rules in order from the smaller to the higher, until an permit is found or it gets to the implicir deny
+- You can write any number, but you will usually leave space between numbers in case you need to add more rules
+- they have a explicit deny which can't be deleted at the end of the rules
+- A subnet must be associated with a NACL, if you don't associate any it will be associated to the default NACL
+- **Default NACL starting settings**:
+  - Allows all traffic inbound and outbound
+- **Custom NACL starting settings**:
+  - Denies all traffic inbound and outbound
+- Inbound = into the subnet
+- Outbound = out of the subnet
+
+**NACLS vs SGs**
+
+![NACL VS SGS](res/3.png)
