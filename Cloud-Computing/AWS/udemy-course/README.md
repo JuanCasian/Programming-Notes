@@ -1,3 +1,33 @@
+- [AWS Certified Solutions Architect - Associate Course](#aws-certified-solutions-architect---associate-course)
+- [Introduction to cloud computing and aws global infrastructure](#introduction-to-cloud-computing-and-aws-global-infrastructure)
+  - [On premise data center](#on-premise-data-center)
+  - [Cloud computing](#cloud-computing)
+    - [Cloud computing offerings](#cloud-computing-offerings)
+    - [Cloud types](#cloud-types)
+    - [Cloud vs on premise](#cloud-vs-on-premise)
+- [Getting started in AWS](#getting-started-in-aws)
+  - [IAM](#iam)
+- [Virtual Private Cloud](#virtual-private-cloud)
+  - [VPC Intro](#vpc-intro)
+  - [Implied Router and Route Tables](#implied-router-and-route-tables)
+    - [Implied Router](#implied-router)
+    - [Route Tables](#route-tables)
+  - [IP Addressing, internet gateway and subnet types](#ip-addressing-internet-gateway-and-subnet-types)
+    - [IP Addressing](#ip-addressing)
+    - [Internet gateway](#internet-gateway)
+    - [Public subnets vs Private Subnets](#public-subnets-vs-private-subnets)
+  - [VPC Demo 1 Overview lab](#vpc-demo-1-overview-lab)
+  - [VPC Demo 2 Overview lab](#vpc-demo-2-overview-lab)
+  - [VPC Types and Security Groups intro](#vpc-types-and-security-groups-intro)
+    - [VPC types](#vpc-types)
+    - [Security groups](#security-groups)
+  - [DEMO 3 Creating a custom VPC](#demo-3-creating-a-custom-vpc)
+  - [DEMO 4 Security Groups](#demo-4-security-groups)
+  - [Security Groups Mastery](#security-groups-mastery)
+    - [Default and non-default security groups](#default-and-non-default-security-groups)
+  - [Network Access Control List (NACL)](#network-access-control-list-nacl)
+  - [Network ACLs and Security Groups](#network-acls-and-security-groups)
+
 # AWS Certified Solutions Architect - Associate Course
 
 Amazon web service course for the exam of associate exam.
@@ -301,3 +331,14 @@ This image illustrates how the servers in AWS work. They are virtually divided i
 **NACLS vs SGs**
 
 ![NACL VS SGS](res/3.png)
+
+## Network ACLs and Security Groups
+
+![diagram](res/4.png)
+
+Layered security diagram
+
+- NACL protects the subnet and the SG the instance
+- It is recommended that you use also your own firewall software inside the EC2 instance
+- In NACLS you can block ranges (11.0.0.0/12)
+- If two instances are in the same subnet then the traffic between them does not need to go through the NACL
