@@ -31,6 +31,11 @@
     - [Resumed](#resumed)
     - [Security group configuration](#security-group-configuration)
     - [NAT Gateway](#nat-gateway)
+  - [VPC Wizard](#vpc-wizard)
+    - [Deleting a VPC with a NAT instance](#deleting-a-vpc-with-a-nat-instance)
+  - [VPC Peering](#vpc-peering)
+  - [AWS Transit getaway](#aws-transit-getaway)
+  - [Virtual Private Networks](#virtual-private-networks)
 
 # AWS Certified Solutions Architect - Associate Course
 
@@ -395,3 +400,81 @@ Layered security diagram
 - NAT instance can work with a public IP or a elastic IP, while the NAT gateway can only work with elastic IP
 - Can not be assigned a security group
 - It is managed by AWS, and is responsible for its own security and patching
+
+## VPC Wizard
+
+- It helps on the VPC and its component creation
+- It has 4 types:
+  - VPC with single Public subnet
+  - VPC with public and private subnets
+    - Creates a custom route table and associates them to the public subnet
+    - The default route table will be connected to the private subnet
+    - Creates and attaches the IGW
+    - Configures the NAT gateway
+      - You can create a NAT instance instead
+  - VPC with public and private subnets and VPN Access
+  - VPC with a private subnet only and hardware VPN access
+- Creates route tables and not route instances
+
+### Deleting a VPC with a NAT instance
+
+- You can't delete VPCs with NAT instances still running
+  - In order to delete it you need to remove the instance first
+
+## VPC Peering
+
+- What you need to connect 2 VPCs
+- VPC peering can be done the between different regions and accounts.
+- There are some conditions for VPC to be posible:
+  - The CIDR blocks between VPCs can't overlap
+- VPC peering connection is a networking connection between 2 VPCs that enables you to route traffic betwen them using private IPv4 addresses or IPv6 addresses
+- Instances in either VPC can communicate with each other as if they were in within the same network
+- VPCs are fault tolerant
+- AWS uses tha existing infrastructure of a VPC to create VPC connection. which means that the connection does not reply on extra hardware
+- Uses:
+  - Share files between the VPCs
+- How to do VPC peering:
+  - The owner of the requester VPC sends a request to the owner of the peer VPC
+  - The owner of the peer VPC accepts
+  - Update the route tables
+    - target = pcx+ID
+  - Adjust security groups
+    - You can select source and destination as VPCASEcGroupA in VPCB
+- VPC peering is one to one conection, which means that if you have peering in  VPCA and VPCB and then VPCB and VPCC then VPCA is NOT connected to VPCC.
+  - This is called transitive peering and it is not supported
+  - You need to create a VPC peering for each VPC connection you want
+- VPC peering does not support edge to edge routing
+  - VPCs connections are never shared to other VPCs or anything else
+- You can only have 50 active vpc peerings and 25 pending VPC peerings
+- A placement group can be spanned in peered VPCs
+  - You can have part of the cluster in the VPCA and the other part on VPCB
+- You can't reference security groups from diferent regions
+
+## AWS Transit getaway
+
+- VPC peering is not transitive
+- If you want to connect multile VPCs you'll need to create a mesh between in each which makes it imposible as the number of vpcs grow
+- Transit gateway is a network tansit hub that you can use to interconnect your virtual private clouds and on premises networks
+- It is a regional resource
+- VPCs are allowed to communicate with one another, and with On-premise CIDR blocks by default
+  - Routes are created and propagated on all
+  - You cna configure more route tables to prevent communication between certain vpcs
+- A transit gateway can be associated between accounts
+- The transit gateway can connect to VPCs, AWS Direct connect gateway or VPN
+- Transit gateway route table:
+  - has a default route table and can optionally have aditional ones
+  - route tables include dynamic and static routes that decide the next hop based on the destination IP address of the packet
+  - The target of these routes could be a VPC or a VPN connection
+  - By default the VPCs and VPN connections that are attached to the transit gateway are associated with the default transit gateway route table.
+- Associations:
+  - Each attachment is associated with only one route table
+  - Each route table can be associated with zero to many attachments
+- Route propagation
+  - A VPC or VPN connection can dynamically propagate routes toa  transit gateway route table
+  - With a VPC you must create static routes to send traffict to the transit gw
+  - with VPN connection, routes are propagated from the transit gateway to your on-premise router using Border Gateway Protocol
+  - If you don't want to do all the routes, you can do it manually
+
+## Virtual Private Networks
+
+- 
