@@ -27,6 +27,10 @@
     - [Default and non-default security groups](#default-and-non-default-security-groups)
   - [Network Access Control List (NACL)](#network-access-control-list-nacl)
   - [Network ACLs and Security Groups](#network-acls-and-security-groups)
+  - [Network Address Translation (NAT)](#network-address-translation-nat)
+    - [Resumed](#resumed)
+    - [Security group configuration](#security-group-configuration)
+    - [NAT Gateway](#nat-gateway)
 
 # AWS Certified Solutions Architect - Associate Course
 
@@ -342,3 +346,52 @@ Layered security diagram
 - It is recommended that you use also your own firewall software inside the EC2 instance
 - In NACLS you can block ranges (11.0.0.0/12)
 - If two instances are in the same subnet then the traffic between them does not need to go through the NACL
+
+## Network Address Translation (NAT)
+
+- There are 2 types of subnets:
+  - Private:
+    - It can't be accessed from the internet
+    - Route table does not have igw entry (0.0.0.0/0 igw)
+    - Good for hosting DB
+  - Public:
+    - Internet can send traffic from the igw to the subnet
+    - Its instances has elastic IPs mapped to the instances
+    - Web app
+- The NAT instnace goes on the public subnet
+- NAT instance is a normal EC2 instance which has NAT software in it
+- The private subnets EC2 instances still need to connect to internet somehow to get the updates and bugs fixes, etc. but they must not be accesible from the internet, for that you use a NAT instance which recieves a private IP, stores it in tables to know where to send the result and then sends the request from the NAT instance public IP. Once the response returns then it will check on the table which instance asked for that response and send the response to tha instance.
+  - A network address translation is when a private IP address is converted into a public one (one to one operation). Inside a network there are a lot of private addresses, but there is only a limited amount of IPv4 adresses the Port Address Translation (PAT) was created. 
+  - In PAT each private IP address is assigne to a port in the NAT instance, so that they may use the same pubic IP address and the NAT still knows to whom to send the response.
+- The path of a request from a private instance would be:
+  - Private instance makes the request
+  - It travels through the router into the NAT instance
+  - The NAT applies a PAT operation and sends the request to the internet through its public IP address
+  - When the response arrives back to the NAT instance it checks which Private IP address did the request and returns it into that instance thought the router
+- You need to add security to the NAT so that it won't be hacked and then gain access to the private subnet, you do this with the NACL and the security group
+
+### Resumed
+
+- NAT instance is configured in the public subnet
+- NAT  instance need to be assigned a security group
+- NAT instance is there to enable the private subnet EC2 intances to get to the internet
+- No traffic from the the internet should access the private subnet
+- Only admin ssh traffic can be allowed to the NAT instance
+- Public subnets EC2 instance don't need to go through NAT
+
+### Security group configuration
+
+- On the private EC2 instance:
+  - Allow outbound traffic for HTTP and HTTPS ports (80, 443)
+- On the NAT instance you must allow:
+  - Traffic inbound from the private subnet or the private subnet's security group as source on ports 80 and 443
+  - Traffic outbound to 0.0.0.0/0 (internet) on ports 80 and 443
+  - Traffic inbound from the customer's own network on port 22(SSH) to administer the NAT instance (Only add your IP address so you can connect to the instance)
+- **Side Note:** Every EC2 instance has by default has a parameter that is called source destination check. which means that the instance will only send out traffic that was originated from itselt and only recieve traffic that was directed to itself. On the NAT instance it is diferent, it proxies traffic, whicih means that it recieves requests from other and then resends it itself and when the response arrives it resend it to the private subnet. In order for this to happen you need to disable the source destination check.
+
+### NAT Gateway
+
+- AWS NAT gateway is a service form AWS which takes care of everything of the NAT
+- NAT instance can work with a public IP or a elastic IP, while the NAT gateway can only work with elastic IP
+- Can not be assigned a security group
+- It is managed by AWS, and is responsible for its own security and patching
