@@ -35,7 +35,8 @@
     - [Deleting a VPC with a NAT instance](#deleting-a-vpc-with-a-nat-instance)
   - [VPC Peering](#vpc-peering)
   - [AWS Transit getaway](#aws-transit-getaway)
-  - [Virtual Private Networks](#virtual-private-networks)
+  - [VPC Virtual Private Networks (VPN)](#vpc-virtual-private-networks-vpn)
+    - [Enabling the connection](#enabling-the-connection)
 
 # AWS Certified Solutions Architect - Associate Course
 
@@ -475,6 +476,29 @@ Layered security diagram
   - with VPN connection, routes are propagated from the transit gateway to your on-premise router using Border Gateway Protocol
   - If you don't want to do all the routes, you can do it manually
 
-## Virtual Private Networks
+## VPC Virtual Private Networks (VPN)
 
-- 
+- Conexions through virtual private gateways
+- VPN conections are quick, easy to deploy, and cost effective
+  - VPN connections goes over the internet so it is cheap because you don't need any dedicated conections
+- On the VPC you only require a VGW
+- You need an internet routable IP address in the customer gateway
+- Two tunnels are configure for each VPN connection for redundancy
+- VPNs have latency
+- You can NOT use the NAT gateway in your own VPC through the VPN connection
+
+### Enabling the connection
+
+- You need to update your vpn-only subnets' route table(s) to point at the VGW for subnets that are on the other side of the VPN connection
+  - Either manually or through dynamic route proagation in the Virtual Private Gateway 
+  - The route propagation is done through Border Gateway Protocol (BGP) which is a protocol to exchange routing and reachability info
+- VGW is redundant and fail proof by AWS
+- You can have up to 10 IPSec tunnels, but it is a softlimit because you can ask AWS to increase the limit
+  - IPsec tunnels means the number of customer gateways you can connect
+- IPsec is Internet Protocol security which is a secure network protocol to autenticate the packets sent throught the internet
+- Your connections can also be direct connections, not IPsec
+- You are charged hourly and for the data sent to the customer
+- Only the IP prefixes that are known to the VGW can recieve/send data
+- VGW knows the routs by static routing or BGP
+- You can not access Elastics IPS on your VPC side using the VPN tunnel
+
