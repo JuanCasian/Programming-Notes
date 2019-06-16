@@ -37,6 +37,10 @@
   - [AWS Transit getaway](#aws-transit-getaway)
   - [VPC Virtual Private Networks (VPN)](#vpc-virtual-private-networks-vpn)
     - [Enabling the connection](#enabling-the-connection)
+  - [VPC Direct connect](#vpc-direct-connect)
+    - [802.1 Q Links](#8021-q-links)
+    - [Static vs Dynamic routing](#static-vs-dynamic-routing)
+    - [Border Gateway Protocol (BGP)](#border-gateway-protocol-bgp)
 
 # AWS Certified Solutions Architect - Associate Course
 
@@ -502,3 +506,53 @@ Layered security diagram
 - VGW knows the routs by static routing or BGP
 - You can not access Elastics IPS on your VPC side using the VPN tunnel
 
+## VPC Direct connect
+
+- Is a low latency connection between the customer and AWS
+- does not use bandwidth
+- Charges data rates in DX than on the VPN
+- Requirements:
+  - Remote datacenter (customer network)
+  - AWS direct connection end point
+    - You actually need hardware to connect to the AWS
+  - You need to use BGP between the two ends
+  - Customer rout
+  - Customer router 
+    - must be able of 802.1Q and BGP
+- With DX you can access any service on AWS like amazon S3, etc
+- You can use he connection to establish Virtual InterFaces (VIFs) to connect to a VPC in a region via VPCs VGW
+- You can establish multiple private VIFs to multiple VPC ins a refion (one per VPC)
+- You can establish public VIFs to connect any public AWS endpoint in any region
+- Supports both Ipc4 and IPv6
+- All networking traffic remains opn the AWS gobal network bakcbone
+- Any data transfer out of a remote Region is billed at the remote Region data transfer rate
+
+### 802.1 Q Links
+
+- Is a protocol that allows to share physical links through isolated channels
+- It means that the information is tranfered sepparately in different channels (VLANs), so that one piece of information is never touched by another
+- You can carry up to 4096 channels
+- A port enabled for VLAN tagging
+- VLAN = virtual local area networks
+- VIFs are virtual network interfaces which is software that connects two separate components
+
+### Static vs Dynamic routing
+
+- On static routing you are stating if the request is to this set of IPS then send it over to the router N, and then on router N you'll see, if the request has this IP send it to this instance
+- When you have a a lot of diferent routesrs it gets hard to know which is the best route between 2 instances, so dynamic routing is a software that will take care of updating and exchange routing information through all the routers, so that each one of them know each route and which is the best way to get there
+
+### Border Gateway Protocol (BGP)
+
+- This makes the routing between Autonomoous Systems (AS)
+- Autonomous systems is a collection of routers and infrastructure handled by the same administration
+- Each autonomous system must have different AS number
+- The connection on BGP is a TCP session on port 179
+- BGP is the main internet protocol routing today
+- Can carry large number of routes with granular route control
+- It has many route/path atributes to control routing
+- Has 2 main types:
+  - IBGP - Internal BGP
+    - routing within an AS
+  - EBGP - External
+    - Between ASs
+- Eachs AS conected is called a peer.
