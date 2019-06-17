@@ -41,6 +41,18 @@
     - [802.1 Q Links](#8021-q-links)
     - [Static vs Dynamic routing](#static-vs-dynamic-routing)
     - [Border Gateway Protocol (BGP)](#border-gateway-protocol-bgp)
+  - [AWS direct connect routing](#aws-direct-connect-routing)
+    - [Link Aggregation Groups LAGS](#link-aggregation-groups-lags)
+    - [BGP and Hybrid Connectivity](#bgp-and-hybrid-connectivity)
+  - [Routing control using BGP communities](#routing-control-using-bgp-communities)
+  - [Route priority Processing](#route-priority-processing)
+    - [Traffic forwarding](#traffic-forwarding)
+  - [AWS Direct conect gateway](#aws-direct-conect-gateway)
+  - [AWS VPC endpoints and transitive peering](#aws-vpc-endpoints-and-transitive-peering)
+    - [VPC endpoints](#vpc-endpoints)
+  - [VPC Flow logs and DHCP Option sets](#vpc-flow-logs-and-dhcp-option-sets)
+    - [VPC Flow logs](#vpc-flow-logs)
+    - [DHCP (Dynamic Host Configuration Protocol) Option sets](#dhcp-dynamic-host-configuration-protocol-option-sets)
 
 # AWS Certified Solutions Architect - Associate Course
 
@@ -556,3 +568,127 @@ Layered security diagram
   - EBGP - External
     - Between ASs
 - Eachs AS conected is called a peer.
+
+## AWS direct connect routing
+
+### Link Aggregation Groups LAGS
+
+- If you have more than 1 physical link between ASs you can use the links combined to increase the speed
+  - Ex: if you have two, 10 gigs links then you can send data at 20 gigs
+- Those links are treated as one
+- It is a logical interface that uses Link Aggeration Control Protocol (LACP) to aggregate multiple connections at a single AWS Direct Connect endpoint, allowing you to treat them as a single, managed connection
+  - All connetions in a LAG operate in active/active mode.
+- You can create a LAG from existing connections, or you can provision new connections. You can associate other existing ocnnections with the LAG
+- rules:
+  - All connections in the LAG must have the same bandwith
+  - Max 4 connections
+  - All connections in the LAG must terminate at the same AWS Direct Connection
+- The minimum number of connections to call a lag operational is 0
+  - You can specify a higher value to make it unoperational if it falls below it
+
+### BGP and Hybrid Connectivity
+
+- BGP is the only routing option on Direct connect links
+- Each side creates its own route table
+
+## Routing control using BGP communities
+
+- When you have links between 2 or more ASs with a lot of routers they can  get confuse because the info is sent through both links, so when both routers recieve it they will both try to send it
+- To solve this you use Communities and attribute to control which link sents what traffic
+- Communities and attributes are like tags that you add to the traffic
+  - When you send traffic through both links you'll add a tag to each traffic on each link and the higher or shorter the tag is the one that is preferable, so that packet would be used instead of the other
+  - If both tags have the same value then it is shared traffic
+- Inbound poolicies:
+  - clients must own the public prefices and they must be registered as such
+  - Traffic must be destined to Amazon public prefixes
+    - Transitive routing between connections is not supported
+- AS_PATH is the community in whcih you send the tags (values) for the router to know which traffic to use
+- NO_EXPORT BGP community is telling that the packet should not be advertised to other routers
+
+## Route priority Processing
+
+- Longest prefix match
+  - The IP address which is more specific is the one that will be used in the router
+  - 10.0.0.0/24 is more specific than 10.0.0.0/16
+- The route tables targets can't be direct connect or vpns, you can target gateways
+- If there are rules that overlap and have the same prefix match the untie would be:
+  1. Prefer routes BGP propahated from a AWS Direct connect connection
+  2. Mannualy added static routes for a site-to-site VPN connection
+  3. Routes BGP propagated from a site-to-site VPN connection
+
+### Traffic forwarding
+
+- When traffic reaches a VGW, it uses path selection to route traffic to your remote network
+- First it applies Longest prefix match
+- If all routes are of equal length, then:
+  - If a ny propagated routes from a Site-to-Site VPN connection or AWS Direct Connect connection overlap with the local route for your VPC it will use tha local one
+- If any propagated route has teh same destination as static route, then AWS prioritizes state routes whose targets are gateways, or any outside connection
+- Only IP prefixes that are known to the VGW can recieve traffic. Anything uknown won't be forwarded
+
+## AWS Direct conect gateway
+
+- when you have the to connect your own on premise datacenter to 2 or more you can't use the private vifs to connect to them because those can only be used in one region
+  - you can solve this by adding a public vif to the other VPC and then cerate a VPN connection to it, but this is not scalable
+  - For this reason the direct connect gateway was created
+- Using the Direct connect gateway you only create a private VIF connection to the on premise datacenter
+- Direct connect gateway is a global resource so you can use any region
+- you can create a Direct conect gateway in any region and use it in any other
+- It can be used through differente accounts
+- Limitations:
+  - the VPCs connected to the direct connect gateway they can't talk to each other through the gw
+  - CIDR blocks of the connected VPCs can't overlap
+  - you can't have a public VIF connected to a direct connect
+  - you can't communicate to other on premise datacenter
+  - You can't communcate to VPNs on the VPCs
+  - You can't associate VPCs connected to the direct gw to other direct connections
+
+## AWS VPC endpoints and transitive peering
+
+- Transit VPC is a diy solution
+  - You use software VPN in a EC2 instance and you connect to it 
+  - Then you configure the EC2 to make it transitive
+- You connect all the VPCs to the one with the VPN software and now all of them can be connected because traffic is allowed to go through the VPN VPC to the others
+- This is not a redundant solution
+
+### VPC endpoints
+
+- Used to connect to the services through the AWS network, without going to the internet
+- You connect VPC endpoints to the services such as Amazon DB, and then your router is going to be able to make requests to it
+- It enables to privately connect your VPC to AWS services
+- Instances in VPC don't need public IP to communicate to the services
+- Endpoints are virtual devices, VPC components that allow communication between instances in your VPC and services
+- 2 types:
+  - interface endpoints
+    - Elastic network interface
+    - you put the DNS to the private IP of the eNI to connect
+  - gateway endpoints
+    - You put it in the route table when you ask for some IP addresses
+    - You need an endpoint policy to control who can access what
+    - Endpoints are only soported to the same region only
+  - the type depens on which service you want
+
+## VPC Flow logs and DHCP Option sets
+
+### VPC Flow logs
+
+- Feature that enables the capture of information abotu tht Ip traffic going to and from ENIs in your VPC
+- It helps to troubleshoot why specific traffic is not reaching its target
+- It helps to monitor traffic for security reasons
+- Flow logs can be created for a VPC, subnet or a ENI
+- Flow log data can be published to AMazon cloud watch logs or Amazon S3
+- To create a flow log:
+  - specify to which resource are you createing the flow log
+  - The type of traffic to capture
+  - The destination to store it
+- Charges appply to store the logs
+- It takes some minutes to start collecting logs
+
+### DHCP (Dynamic Host Configuration Protocol) Option sets
+
+- You can use an on-premise DNS for AWS VPC environment
+- But you can't use Route 53 as a DNS for your on-premise infrastructure
+- DHCP provides a standard for passing configuration information to hosts on a TCP/IP network
+- You can't modify DHCP options, you need to create a new one
+- You can have many DHCP options but only associate one at a time
+- It takes a few a hours when you change the option sets
+
