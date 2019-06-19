@@ -401,3 +401,36 @@ gcloud compute instances create "my-vm-1" \
   - `mb` = make bucket
   - `cp` = copy
   - `acl` = access control list options
+
+## Containers, Kubernetes, and Kubernetes Engine
+
+- Hybrid between compute engine and app engine
+- IaaS
+  - You virtualize the hardware through virtual machines
+  - Each developer can deploy their own OS, access the hardware etc.
+  - It gives a lot of freedom on it
+  - but as demand increases you need to copy the entire vm, and boot the OS for each app instance, which is slow and costly
+- App Engine
+  - You get access to programming services
+  - Al you do is write code in self contained workloads that use these services and include any dependent library
+  - As the demand of your app increases the platform scales you app by workload and infrastructure
+  - But you can't tune the underlying architecture to save cost
+- Containers give you the independent scalability of workloasds and an abstraction layer of the OS and hardware
+- Containers:
+  - Only requires few system calls and boots up really fast
+  - All you need on each host is an OS krnel that supports containers adn, a container rutnime
+  - It scales like PaaS, but gives you almost the whole flexibility of IaaS
+  - Code becomes ultraportable because the hardware becomes a blackbox and code works anywhere
+  - Ex: You can scale a webserver in seconds by deploying hundreds of containers
+  - Usually you won't have all in one single application. You want to do microservices.
+    - What you'll do is divide the functions in seperate apps which will then be deployed in containers that are connected in a network of connections and now they can deploy easily and scale independently across a groups of hosts.
+    - This hosts can also scale up or down and start or stop container on-demand as demand of applications changes or if a host fail
+- Kubernetes:
+  - Is the tool that makes it easy to orchestrate many containers on many hosts, scale them as microservices and deploy roll ups and roll backs
+  - Is opensource
+  - Abstracts containers at a higher level so you can better manage and scale your application
+  - At the highest level kubernetes has a set of APIs that you can use to deploy containers on a ser of nodes calles a cluster
+  - The system is divideed into a set of master components that run as a control plane and a set of nodes tha run containers
+  - A node is a computing instance
+  - You can describe a set of applications and how they should interact with each other and Kubernetes figues how to make that happen. 
+- Google kubernetes engine
