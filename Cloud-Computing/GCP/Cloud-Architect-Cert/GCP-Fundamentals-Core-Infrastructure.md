@@ -433,4 +433,14 @@ gcloud compute instances create "my-vm-1" \
   - The system is divideed into a set of master components that run as a control plane and a set of nodes tha run containers
   - A node is a computing instance
   - You can describe a set of applications and how they should interact with each other and Kubernetes figues how to make that happen. 
-- Google kubernetes engine
+- Google kubernetes engine (GKE)
+  - kubernetes can be configure with many ooptions and add-ons, but this takes a lo of time, so GKE is a solution to it
+  - GKE can be customized, they can support diferent vms, nodes, networks
+  - You can check the status in the admin console
+  - Then you can deploy containers on nodes using a wrapper round one or more container caled a Pod
+  - Pod is the smalles unit in kubernetes that you can create or deploy
+    - Represent a running process on your cluster 
+  - Usually you'll hve one container per pod, but if there are multiple container with a hard dependency you can add wrap them in a single pod
+  - Pods share networking and storage
+![Pod](res/5.png)
+
