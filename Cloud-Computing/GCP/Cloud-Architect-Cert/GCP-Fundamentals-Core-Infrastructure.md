@@ -442,5 +442,142 @@ gcloud compute instances create "my-vm-1" \
     - Represent a running process on your cluster 
   - Usually you'll hve one container per pod, but if there are multiple container with a hard dependency you can add wrap them in a single pod
   - Pods share networking and storage
+  - Pod has unique networking IP and sets ports per container
+  - containers inside pods can communicate through local hosts and ports
+  - Kubernetes assigns a service to your pods you want to run together and attaches a load balancer which has a public IP so others outside the cluster can access it 
+
 ![Pod](res/5.png)
 
+- The best way to run kubernetes is with a config file
+- To update the containers you use rollout, which will be creating new containers depending on the rollout stategy
+
+## Demo: Getting Started with Kubernetes Engine
+
+- To use the kubernetes engine you need to have enabled 2 APIs:
+  - Google kubernetes engine API
+  - Google Container Registy API
+
+## Intro to App Engine
+
+- You don't need to focus in the infrastructure at all
+- PaaS
+  - Platform as a service
+  - Manages hardware and networking
+  - You only hand the code
+  - Scales the app automatically depending on the load
+  - Offers noSQL databases, in-memory caching, load balancing, health checks, loggin and authentication
+  - It has 2 env:
+    - standard
+    - flexible
+
+## App Engine Standard Environment
+
+- simplier deployment
+- Free daily usage quota
+  - So low usage apps can run at no charge
+- Google provides SDKs in several languages for you to test your code locally before sending it to app engine
+  - Also provide simple commans for deployment
+- The executable binary is called `runtime` in google
+- In standard env you use runtimes provided by google with include, Java, Python, PHP and Go
+- If you want to code in another language then standard is not the best for you
+- Standard env enforces restrictions on the code by running it in a Sandbox: software that is independent of the hardware, OS, or physical location of hte server
+- Sandbox is what makes it so scalable and manageable
+  - Sandbox imposes some constrains:
+    - You can't write to the local file system
+    - All the requests has a 60 second timeout
+    - You can't install 3rd party software
+
+## App Engine Flexible Environment
+
+- Flexible environment lets you define the container your app engines runs in
+- You app will run inside docker containers in Google VMs
+- App Engine manages the vm for you, they are health checked, healed
+  - You choose on which region they'll run
+  - Backward compatible updates to the OS are automatically applied
+
+### Flexible vs Standard
+
+![Chart](res/6.png)
+
+### App Engine vs Kubernetes Engine
+
+![Chart](res/7.png)
+
+## Google Cloud Endpoint and Apigee Edge
+
+- API is structure software that only presents a clean, well defined interface that hides all the underlying implementation.
+- APIs are versioned so that you know when they change it
+- GCP has 2 managemnet tools for APIs:
+  - Cloud Endpoints
+    - Easy to expose API
+    - Only consumable to developers whom you trust
+    - Easy to monitor and log
+    - API has a single coherent way to know which end user is making the call
+    - It uses a proxy in front of your software service and provides a API cosnole
+    - Supports applications running in GCP's compute platforms
+  - Apigee Edge
+    - I focuses on business problems:
+      - rate limiting
+      - quotas
+      - analytics
+    - Usually for business providing services to other companies
+    - Usually used to convert into microservices application
+
+## DEMO with App engine
+
+- The app.yaml file specifies the details for it to run in the app engine
+
+## Development in the cloud
+
+- GCP has some tools that help you on the development
+- Google Cloud Source
+  - Is a git version control
+  - you can use IAM permissions
+  - You can have any number of private git repos
+  - You can ave code, app engine, compute engine, kubernetes engine
+  - It has a source viewer
+- Cloud Functions
+  - Is a simple service in which you only run a function
+  - The service is waiting until you get the event and then the app runs for you
+  - You don't need to worry about the computing power you need to give
+  - You write code in js for a node.js env
+  - You only pay when the function is run in 100 ms intervals
+  - You can trigger the events in cloud storage, cloud pub/sub or http call
+  - Triggers
+    - Declarations of what event you need to happen for the function to start working
+    - You then attach js functions to the triggers
+  - Some apps can be implemented entirely in cloud functions
+
+## Deployment: infrastructure as code
+
+- Deployment Manager
+  - Tool to set up all your environment through a file
+    - Yaml or python
+  - You will create a template of what the env should look like and then deploy it
+  - To edit anything on the env, you just need to update the file and then tell the deployment manager to update the env to match the file
+
+## Monitoring: Proactive instrumentation
+
+- Stack Driver is GCP's tool for monitoring, logging and diagnostics
+  - Gives youo access to many signals from your infrastructure:
+    - vms
+    - containers
+    - middlewares
+    - applications tier, logs and metrics, and traces
+  - Core components:
+    - Monitoring
+      - Checks enpoints
+        - uptime checks can be configured
+      - health checks
+    - Logging
+      - lets you view logs on the app
+      - You can export logs
+    - Trace
+      - Sample the latency of app engine apps
+    - Error Reporting
+      - Error notifications
+      - Error dashboard
+    - Debuging
+      - Connects the app production data to your source code so you can see the application state without adding lots of logs
+      - It works best when you have the source code
+  - You can create alerts
